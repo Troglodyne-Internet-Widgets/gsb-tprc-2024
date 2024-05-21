@@ -1,3 +1,5 @@
 .PHONY: all
 all:
-	pdflatex paper.tex
+	latexmk -pdf
+	latexmk -c
+	rm paper.bib paper.bbl; /bin/true

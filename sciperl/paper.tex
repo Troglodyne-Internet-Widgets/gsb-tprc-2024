@@ -1,6 +1,8 @@
 \documentclass[twoside]{article}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage[T1]{fontenc}
 \usepackage[dvipsnames]{xcolor}
 \hypersetup{
      colorlinks=true,
@@ -8,6 +10,15 @@
 }
 \usepackage{listings}
 \lstset{language=Perl}
+
+\begin{filecontents}{paper.bib}
+    @misc{antithesis,
+        title   = "Is something Bugging you?",
+        author  = "Will Wilson",
+        url     = {https://antithesis.com/blog/is_something_bugging_you/},
+        year    = 2024
+    }
+\end{filecontents}
 
 \title{%
     Reasoning about the rigor of perl programs: \\
@@ -35,6 +46,7 @@ I will lay out what is currently available, how that fits into a framework for r
 in a rigorous fashion, and identify places where our ability to reason could be improved via tooling.
 Prototypes of said tools will also be demonstrated.
 
+\newpage
 \section{INTRODUCTION}
 
 In software testing there's a concept known as the "pesticide paradox" which is shorthand for saying
@@ -55,7 +67,7 @@ Much like a child's game of "telephone", the earlier in the stack this happens, 
 
 From this two things are clear:
 
-1. rigorous testing of any individual *instruction* within a stack over it's expected domain of inputs, and a sampling of data outside of that is valuable.
+1. rigorous testing of any individual \textit{instruction} within a stack over it's expected domain of inputs, and a sampling of data outside of that is valuable.
 2. The interaction of an instruction with its immediate follower and predecessor must also be well understood; these multi-instruction sections can indeed be treated as though they are themselves more complicated instructions.
 
 This is the actual theoretical underpinning behind the two testing concepts we are all familiar with (unit and integration testing), but most don't think too hard about.
@@ -83,7 +95,7 @@ One such form is the "abstract syntax tree", which is an intermediate form used 
 
 Building such a tree is how PPI, and the tools which rely on it such as Perl::Critic work.
 Alternatively you can inspect the "intermediate form" which the interpreter itself builds via the B::Deparse, or similar techniques as Devel::Cover and Devel::NYTProf leverage.
-However just because you *can* reason about perl programs in the same fashion as any other programming language, does not guarantee avenues of inquiry are exhaustively explored.
+However just because you \textit{can} reason about perl programs in the same fashion as any other programming language, does not guarantee avenues of inquiry are exhaustively explored.
 
 a. Devel::Cover does not quite cover the subject
 
@@ -128,8 +140,8 @@ b. But I've got 100% coverage, now what?
 
 It's usually fairly straightforward to get 100% statement coverage on greenfield code.
 However this rarely translates into software quality, as the test coverage on any of the deps in the stack remains opaque.
-How do we identify if the dependencies we use are well covered *where we use them*?
-If we can, the same techniques can be cross-referenced with the relative importance of the module vis the "CPAN River" to identify where the most high-impact test coverage improvements could be made in the perl ecosystem.
+How do we identify if the dependencies we use are well covered \textit{where we use them}?
+If we can, the same techniques can be cross-referenced with the relative importance of the module vis. the "CPAN River" to identify where the most high-impact test coverage improvements could be made in the perl ecosystem.
 
 It turns out that we can do this, supposing we actually run the testsuites of our dependencies when installing them.
 This is (normally) the case when using something like perlbrew, with an isolated environment.
@@ -137,11 +149,11 @@ System perl is usually another story, as many modules will be shipped with anoth
 
 While we could always wrap CPAN, ideally a CPAN::Plugin either pre or post test would be ideal.
 Nevertheless, given the wide variety of means that CPAN Modules might be installed, any solution here would have to build a coverage index on-demand, and cache it for later use, likely as a plugin to Devel::Cover instead.
-cpancover *appears* to do this, but is currently broken and appears unmaintained.
+cpancover \textit{appears} to do this, but is currently broken and appears unmaintained.
 
 c. eval {} is not enough
 
-Since the primary programming paradigm is *not* "Klingon Programming" where it is better to die() than return() in failure, there is no guarantee that environmental problems are caught.
+Since the primary programming paradigm is \textit{not} "Klingon Programming" (where it is better to \textit{die()} than \textit{return()} in failure), there is no guarantee that environmental problems are caught.
 This is why a great many Perl::Critic rules about using eval {...;1;} or do..., `my $pid=fork(); die unless defined $pid` and so on exist.
 Some means of actual fault injection should also be taken into account with regard to coverage.
 
@@ -150,11 +162,11 @@ Does your script recover from children whacked by oomkiller?
 What if fork() fails because the process table is filled with zombies?
 What about system() or qx{} or pipe open() when the target does not exist, but that -f returns true because you have a bad RAID card?
 
-This is actually a quite complicated subject.  As the founder of Anththesis (https://antithesis.com/blog/is_something_bugging_you/) puts it:
-
-the $100 bill is surrounded by an entire field of poisonous spike-pits, nay, a continent of them.
-
-Aside from building something which can inject the *astonishingly vast array* of such faults, there is still the problem of integrating this into perl's testing harness, and reporting coverage to do.
+This is actually a quite complicated subject.  As the founder of Antithesis puts it \cite{antithesis}:
+\begin{displayquote}
+the \$100 bill is surrounded by an entire field of poisonous spike-pits, nay, a continent of them.
+\end{displayquote}
+Aside from building something which can inject the \textit{astonishingly vast array} of such faults, there is still the problem of integrating this into perl's testing harness, and reporting coverage to do.
 
 d. Fitness for a particular purpose
 
@@ -189,6 +201,7 @@ I for one would love seeing a table with these criteria and test coverage readil
 
 Oftentimes your choice of components is the primary determinant of your output's quality; we could do a lot more to help people reason about this.
 
+\newpage
 \section{Conclusion}
 
 As you might expect from an active programming community of 35+ years, the things perl struggles to understand about its programs are essentially what every other programming language struggles with.
@@ -201,5 +214,9 @@ You don't have to be original, use non-dead programming languages or even be par
 The software industry is one of the few places aside from SoEs (nasa.jpg) where this rate of failure is remotely tolerable.
 This is because our field is still relatively young, but that is changing quickly.
 The trend you need to get religion on is not AI, but quality.
+
+\newpage
+\bibliographystyle{vancouver}
+\bibliography{paper}
 
 \end{document}
