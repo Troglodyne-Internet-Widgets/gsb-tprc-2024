@@ -12,11 +12,53 @@
 \lstset{language=Perl}
 
 \begin{filecontents}{paper.bib}
+    @article{oring,
+        title = "The O-Ring Theory of Economic Development",
+        author = "Michael Kremer",
+        journal = "The Quarterly Journal of Economics, Vol. 108, No. 3",
+        url     = {https://www.jstor.org/stable/2118400},
+        year    = 1993,
+        note    = "I say 'most' here, because there is a not insignificant sector of the economy called the 'foolproof' sector, see Garret Jones' 2012 paper 'The O-Ring Sector and the Foolproof Sector'.  However for the purposes of software, we can easily conclude much if not all of our industry is decidedly in the 'O-Ring' sector."
+    }
+    @misc{bezier,
+        title  = "Software testing techniques",
+        author = "Boris Bezier",
+        note    = "Chapter 1, Section 1.7 - ISBN:0442206720",
+        year    = 1990
+    }
+    @misc{bezier2,
+        title  = "ibid",
+        note   = "TODO: chapter/verse"
+    }
+    @misc{bezier3,
+        title  = "ibid",
+        note   = "Chapter 2, Section 3.4.1"
+    }
+    @misc{turing,
+        title  = "On Computable Numbers, with an Application to the Entscheidungsproblem",
+        url    = {http://www.turingarchive.org/browse.php/B/12},
+        author = "Alan Turing",
+        year   = 1937
+    }
+    @misc{frame,
+        title = "The Frame Problem",
+        url = {https://plato.stanford.edu/entries/frame-problem/},
+        note = "The current thinking as regards the resolution of the frame problem vis. AI is that intelligence, insofar as it exists at all, is 'embodied'.  Which is to say it has physical presence in the world, and intelligence is drawn forth from application of the body's faculties thereupon.  This explains a number of sociopolitical phenomenon such as the 'Flynn effect'."
+    }
+    @article{chapman,
+        title = "Planning for conjunctive goals",
+        journal = "Artificial Intelligence, Volume 32, Issue 3 pp. 333-377",
+        url = {https://www.sciencedirect.com/science/article/abs/pii/0004370287900920},
+        year = 1987,
+        author = "David Chapman",
+        note = "You can read it for free in MIT AI Technical Report 802 from 1985. Chapman proves NP-Completeness of the frame problem therein."
+    }
     @misc{antithesis,
         title   = "Is something Bugging you?",
         author  = "Will Wilson",
         url     = {https://antithesis.com/blog/is_something_bugging_you/},
-        year    = 2024
+        year    = 2024,
+        note    = "Having built similar systems myself, I second these sentiments."
     }
 \end{filecontents}
 
@@ -37,8 +79,8 @@
 While some tools exist to reason about the correctness of a program and its fitness for particular purposes,
 there remain a number of unexamined approaches which will likely prove fruitful to explore.
 
-Productivity of any piece of capital or laborer is entirely a function of error rate; being able to quantify
-the conditions under which failures can be expected is thus of the utmost importance.
+The productivity of most capital or labor is \textit{almost entirely} a function of error rate \cite{oring}.
+Being able to quantify the conditions under which failures can be expected is thus of the utmost importance.
 
 In the era of testsuite generation via large language models, this is of even greater concern.
 
@@ -49,25 +91,26 @@ Prototypes of said tools will also be demonstrated.
 \newpage
 \section{INTRODUCTION}
 
-In software testing there's a concept known as the "pesticide paradox" which is shorthand for saying
+In software testing there's a concept known as the \textit{pesticide paradox} \cite{bezier} which is shorthand for saying
 "The bugs are always where you aren't looking".  Abscence of evidence is not evidence of abscence.
 
 If we can straightforwardly identify where we are not looking, and cross-reference this with
 a means of discerning which bits of code are the most critical we can then prioritize our annealing process.
 
 To identify where we are not looking, we need a proper mental model of how computers work.
-Thankfully, this is well established.  Programs are just stacks of instructions capable of adding and removing instructions to said stack.
+Thankfully, this is well established.
+Programs are just stacks of instructions capable of adding and removing instructions to said stack.
 Modern programs are usually multiple series of these stacks in parallel, usually referred to as pipelines.
 Some of these instructions are thought of as code, some as data but it's all the same to the executor.
 
-Any given instruction is going to operate like a traditional mathematical function;
+Any given instruction is going to operate like any other mathematical function;
 this is to say that it will have a range of acceptable inputs and outputs.
 Anything outside of these ranges results in either invalid or undefined behavior when composed in a stack of instructions.
 Much like a child's game of "telephone", the earlier in the stack this happens, typically the worse the outcome.
 
 From this two things are clear:
 \begin{itemize}
-\item rigorous testing of any individual \textit{instruction} within a stack over it's expected domain of inputs, and a sampling of data outside of that is valuable.
+\item rigorous testing of any individual \textit{instruction} within a stack over it's expected domain of inputs, and a sampling of data outside of that is valuable \cite{bezier2}.
 \item The interaction of an instruction with its immediate follower and predecessor must also be well understood; these multi-instruction sections can indeed be treated as though they are themselves more complicated instructions.
 \end{itemize}
 This is the actual theoretical underpinning behind the two testing concepts we are all familiar with (unit and integration testing), but most don't think too hard about.
@@ -75,13 +118,11 @@ It's this lack of concrete understanding that leads to frequent confusion and in
 
 It is tempting from here to consider programs as discrete stacks, which can be exhaustively proven to behave well, in a sort of "proof by induction".
 However the data you feed in is itself a stack of instructions with a necessarily unbounded input and output domain.
-This is best known as the "halting problem", as there is always theoretically some set of data you can feed a program which will prevent any program from ever terminating.
-What is less well understood is that the pesticide paradox is pernicious precisely because it is the halting problem.
-And the halting problem is actually Godel's Uncertainty principle - there will always exist at least one statement in any given axiomatic system which cannot ever be proven.
+To make things worse, well designed programs \textit{tend to} move code into data \cite{bezier3}, so now the problem not just undecidable \cite{turing} \textit{but also} recursive.
 
-This same problem rears its head when attempting to demonstrate fitness for a particular purpose!
-Any approach other than actually engaging in said purpose immediately falls afoul of the "frame problem".
-Ultimately nothing but an actual user can actually accept a product is fit for a particular purpose.
+Another vexatious problem rears its head when attempting to demonstrate fitness for a particular purpose!
+Any approach other than actually engaging in said purpose immediately falls afoul of the "frame problem" \cite{frame}.
+Ultimately nothing but an actual user can actually accept a product is fit for a particular purpose, because non-embodied intelligence can't do that \cite{chapman}.
 As such, any approach other than recording user journeys and being able to play them back is shooting in the dark.
 
 Economists call this concept "Demonstrated Preference", and the impossibility of centralized economic planning is largely the frame problem restated.
