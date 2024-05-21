@@ -1,4 +1,4 @@
-\documentclass[twoside]{article}
+\documentclass{article}
 \usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{csquotes}
@@ -66,10 +66,10 @@ Anything outside of these ranges results in either invalid or undefined behavior
 Much like a child's game of "telephone", the earlier in the stack this happens, typically the worse the outcome.
 
 From this two things are clear:
-
-1. rigorous testing of any individual \textit{instruction} within a stack over it's expected domain of inputs, and a sampling of data outside of that is valuable.
-2. The interaction of an instruction with its immediate follower and predecessor must also be well understood; these multi-instruction sections can indeed be treated as though they are themselves more complicated instructions.
-
+\begin{itemize}
+\item rigorous testing of any individual \textit{instruction} within a stack over it's expected domain of inputs, and a sampling of data outside of that is valuable.
+\item The interaction of an instruction with its immediate follower and predecessor must also be well understood; these multi-instruction sections can indeed be treated as though they are themselves more complicated instructions.
+\end{itemize}
 This is the actual theoretical underpinning behind the two testing concepts we are all familiar with (unit and integration testing), but most don't think too hard about.
 It's this lack of concrete understanding that leads to frequent confusion and ineffective testsuites the world over.
 
@@ -97,7 +97,7 @@ Building such a tree is how PPI, and the tools which rely on it such as Perl::Cr
 Alternatively you can inspect the "intermediate form" which the interpreter itself builds via the B::Deparse, or similar techniques as Devel::Cover and Devel::NYTProf leverage.
 However just because you \textit{can} reason about perl programs in the same fashion as any other programming language, does not guarantee avenues of inquiry are exhaustively explored.
 
-a. Devel::Cover does not quite cover the subject
+\subsection{Devel::Cover does not quite cover the subject}
 
 Devel::Cover is quite good at identifying statements and conditions which are not covered within a program.
 It cannot however identify places where a condition ought to be applied, but is not.
@@ -136,7 +136,7 @@ From there, a set of boundary data for each of these datatypes would need to be 
 Some users of other programming languages believe themselves to have obviated the entire class of errors due to improper inputs via strong typing systems.
 This of course ignores the reality that poor choice of type (such as an "Any" type, or unsigned when you need signs, etc) immediately voids any such guarantees, and boundary testing is nonetheless necessary.
 
-b. But I've got 100% coverage, now what?
+\subsection{But I've got 100\% coverage, now what?}
 
 It's usually fairly straightforward to get 100% statement coverage on greenfield code.
 However this rarely translates into software quality, as the test coverage on any of the deps in the stack remains opaque.
@@ -151,7 +151,7 @@ While we could always wrap CPAN, ideally a CPAN::Plugin either pre or post test 
 Nevertheless, given the wide variety of means that CPAN Modules might be installed, any solution here would have to build a coverage index on-demand, and cache it for later use, likely as a plugin to Devel::Cover instead.
 cpancover \textit{appears} to do this, but is currently broken and appears unmaintained.
 
-c. eval {} is not enough
+\subsection{eval \{\} is not enough}
 
 Since the primary programming paradigm is \textit{not} "Klingon Programming" (where it is better to \textit{die()} than \textit{return()} in failure), there is no guarantee that environmental problems are caught.
 This is why a great many Perl::Critic rules about using eval {...;1;} or do..., `my $pid=fork(); die unless defined $pid` and so on exist.
@@ -168,7 +168,7 @@ the \$100 bill is surrounded by an entire field of poisonous spike-pits, nay, a 
 \end{displayquote}
 Aside from building something which can inject the \textit{astonishingly vast array} of such faults, there is still the problem of integrating this into perl's testing harness, and reporting coverage to do.
 
-d. Fitness for a particular purpose
+\subsection{Fitness for a particular purpose}
 
 As mentioned earlier, the best means to evaluate whether changes to software harm it's fitness to purpose is some means of tracking user paths through the software as they perform tasks.
 There are two levels of this; one is front-end and the other on the back end.
@@ -178,7 +178,7 @@ The best way to satisfy these needs is via a powerful logging framework using so
 From there you need something to *identify and classify* common patterns of usage.
 This sounds suspiciously like what Neural Networks are *actually good at doing*, so let's do just that.
 
-e. Quality with non-functional Characteristics
+\subsection{Quality with non-functional Characteristics}
 
 Devel::NYTProf is pretty much the best profiler in the industry; it's one of the primary reasons to recommend perl over alternatives.
 However, the ability to reason about the accessibility, localizability or portability of your program is crude at best.
@@ -187,11 +187,11 @@ The only systematic attempt to apply linting across the perl ecosystem is CPANTS
 
 For example, suppose I have the option of multiple modules on CPAN which I see do roughly the same thing in function X.
 It would greatly simplify my decision as to what to use if I already knew ahead of time:
-
-1. What's the bandwidth of this function; how does it perform?
-2. How complex is it?  I may have to read and debug this.
-3. Is it doing non-portable things?
-
+\begin{itemize}
+\item What's the bandwidth of this function; how does it perform?
+\item How complex is it?  I may have to read and debug this.
+\item Is it doing non-portable things?
+\end{itemize}
 And so on.
 
 This is also another place where NNs could be of great utility; while they are pretty awful at writing code, they're pretty great at classifying it.
