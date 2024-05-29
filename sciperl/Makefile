@@ -5,7 +5,7 @@ deps:
 .PHONY: all
 all: clean
 	latexmk -pdf
-	pdf2html paper.pdf
+	pdftohtml paper.pdf
 
 .PHONY: clean
 clean:

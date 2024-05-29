@@ -4,6 +4,7 @@
 \usepackage{csquotes}
 \usepackage[T1]{fontenc}
 \usepackage[dvipsnames]{xcolor}
+\usepackage[english]{babel}
 \hypersetup{
      colorlinks=true,
      allcolors=NavyBlue
@@ -26,8 +27,11 @@
         note    = "Chapter 1, Section 1.7 - ISBN:0442206720",
         year    = 1990
     }
+    @misc{prodprop,
+        note = "While this was evident to even the early Taylorists, the idea did not become widely popular before Japanese adoption of Deming and Juran's principles."
+    }
     @misc{bezier2,
-        title  = "ibid",
+        title  = "Bezier's software testing techniques",
         note   = "TODO: chapter/verse"
     }
     @misc{bezier3,
@@ -59,6 +63,60 @@
         url     = {https://antithesis.com/blog/is_something_bugging_you/},
         year    = 2024,
         note    = "Having built similar systems myself, I second these sentiments."
+    }
+    @misc{mises1,
+        title = "Human Action",
+        author = "Ludwig Von Mises",
+        url    = {https://mises.org/library/book/human-action},
+        year   = 1949,
+        note   = "Ch. I, Sec IV"
+    }
+    @misc{mises2,
+        title = "ibid",
+        note  = "Ch. XXVI"
+    }
+    @misc{atwood,
+        title  = "The God Login",
+        author = "Jeff Atwood",
+        url    = {https://blog.codinghorror.com/the-god-login/},
+        year   = 2015,
+        note   = "While I've heard many testers describe such comprehensive user surveillance systems they've built over the years, I've never heard them classified.  Perhaps the appropriate name might be 'revelation' tests." 
+    }
+    @misc{schlep,
+        title  = "Schlep Blindness",
+        author = "Paul Graham",
+        url    = {https://paulgraham.com/schlep.html},
+        year   = 2012
+    }
+    @misc{gsb,
+        url  = {https://github.com/teodesian/Pod-Coverage-More/blob/master/lib/Pod/Coverage/More.pm}
+    }
+    @misc{gsb2,
+        note = "I once built a test script for just this, and then used the linux kernel testing api to put the zombies in uninterruptible sleep().  This is a fun way to DOS hypervisors."
+    }
+    @misc{mock,
+        url = {https://metacpan.org/pod/Test::MockFile#How-this-mocking-is-done:}
+    }
+    @article{copilot,
+        title="Measuring Github Copilot's Impact on Productivity",
+        journal="Communications of the ACM",
+        year=2024,
+        author="Albert Ziegler",
+        author="Eirini Kalliamvakou",
+        author="X. Alice Li",
+        author="Andrew Rice",
+        author="Devon Rifkin",
+        author="Shawn Simister",
+        author="Ganesh Sittampalam",
+        author="Edward Aftandilian",
+        url={https://cacm.acm.org/research/measuring-github-copilots-impact-on-productivity/},
+        note="'For context, in our study GitHub Copilot has an acceptance rate of 27\%'. While I've worked with some bad programmers (matthew 7:3), I've never worked long with ones who required 4 rounds of review to even be close to correct."
+    }
+    @book{standish,
+        author="Jim Jordan, Standish Group",
+        year=2021,
+        title="CHAOS report: Beyond Infinity",
+        note="Like Brooks' 'Mythical Man Month' predicted, it has borne out that software failure rates remain stubbornly high."
     }
 \end{filecontents}
 
@@ -97,7 +155,9 @@ In software testing there's a concept known as the \textit{pesticide paradox} \c
 If we can straightforwardly identify where we are not looking, and cross-reference this with
 a means of discerning which bits of code are the most critical we can then prioritize our annealing process.
 
-To identify where we are not looking, we need a proper mental model of how computers work.
+\subsection{Fundamental Testing Principles and Problems}
+
+To identify where we are not looking, we need a proper mental model of how computers work if we are to test them.
 Thankfully, this is well established.
 Programs are just stacks of instructions capable of adding and removing instructions to said stack.
 Modern programs are usually multiple series of these stacks in parallel, usually referred to as pipelines.
@@ -107,6 +167,7 @@ Any given instruction is going to operate like any other mathematical function;
 this is to say that it will have a range of acceptable inputs and outputs.
 Anything outside of these ranges results in either invalid or undefined behavior when composed in a stack of instructions.
 Much like a child's game of "telephone", the earlier in the stack this happens, typically the worse the outcome.
+Professional software testers are quick to tell you that this is \textit{also} true of the software \textit{production process} itself \cite{prodprop}.
 
 From this two things are clear:
 \begin{itemize}
@@ -120,18 +181,33 @@ It is tempting from here to consider programs as discrete stacks, which can be e
 However the data you feed in is itself a stack of instructions with a necessarily unbounded input and output domain.
 To make things worse, well designed programs \textit{tend to} move code into data \cite{bezier3}, so now the problem not just undecidable \cite{turing} \textit{but also} recursive.
 
-Another vexatious problem rears its head when attempting to demonstrate fitness for a particular purpose!
+\subsection{Fitness: a further complication}
+
+Another vexatious problem rears its head when attempting to demonstrate fitness for a particular purpose.
 Any approach other than actually engaging in said purpose immediately falls afoul of the "frame problem" \cite{frame}.
 Ultimately nothing but an actual user can actually accept a product is fit for a particular purpose, because non-embodied intelligence can't do that \cite{chapman}.
 As such, any approach other than recording user journeys and being able to play them back is shooting in the dark.
 
-Economists call this concept "Demonstrated Preference", and the impossibility of centralized economic planning is largely the frame problem restated.
-Many firms fall victim to this conceit with their "user stories" and acceptance tests based around these.
-Ultimately the only means to catch fitness issues early in new features is to eat your own dog food, being particularly attentive to "Schlepping" and other places the work-flow can be de-burred.
+Economists call this concept "Demonstrated Preference" and "Subjective Value"\cite{mises1},
+and it is my hypothesis that the impossibility of centralized economic planning \cite{mises2} is largely the frame problem restated.
+For our purposes, it is sufficient to say that while computers are quite good at dealing with cardinal concepts, they are astonishingly poor at dealing with ordinal ones.
+Anyone familiar with sorting algorithms, counting problems and the "perfect covering" problem will have figured this out the hard way.
+In this case, not only are we dealing with a problem which would be at least NP-Hard had we perfect knowledge, we also must grapple with incomplete information.
+
+We are left with nothing more than the "God Algorithm" (already know the answer). \cite{atwood}
+Frequently this is how caching systems are described, but to some extent this is also true of user surveillance.
+It should therefore come as no surprise that tools enabling comprehensive user surveillance have proven quite popular.
+
+Nevertheless, many firms fall victim to the conceit of planning with their "user stories" and acceptance tests based around these.
+Ultimately the only \textit{effective} means to catch fitness issues early in new features is to "eat your own dog food",
+being particularly attentive to "Schleps" \cite{schlep} and other places the work-flow can be de-burred or otherwise streamlined.
 
 \section{Reasoning about Perl Programs}
 
-All programs can after all be expressed as lambda calculus; programs are nearly always transformed into some variety of "intermediate form" prior to being handed off to lower level executors.
+Knowing all this, what then shall we do?
+First, let's go over the extant tools on CPAN.
+
+All programs can be expressed as lambda calculus; programs are nearly always transformed into some variety of "intermediate form" prior to being handed off to lower level executors.
 One such form is the "abstract syntax tree", which is an intermediate form used to reason about the correctness of programs rather than to pass to hardware for execution.
 
 Building such a tree is how PPI, and the tools which rely on it such as Perl::Critic work.
@@ -141,11 +217,12 @@ However just because you \textit{can} reason about perl programs in the same fas
 \subsection{Devel::Cover does not quite cover the subject}
 
 Devel::Cover is quite good at identifying statements and conditions which are not covered within a program.
-It cannot however identify places where a condition ought to be applied, but is not.
+It cannot however identify places where a condition ought to be applied, but is not or vice versa.
 
 It also does not have a means of identifying whether the boundaries of any given block's input/output domain have been exercised.
 It is generally via these means that we discover these missed conditionals, as we are frequently surprised by the realities imposed by input data.
-Given perl only has optional input signatures, and no output signatures nor ways to signify that a sub throws, this has to be inferred; a characterization of the stack must be built.
+Given perl only has optional input signatures, and no output signatures nor ways to signify that a sub throws, this has to be inferred;
+a characterization of the stack must be built.
 
 This inference necessarily implies walking the stack down to the most basic of calls.
 Suppose we have a sub foo, which calls bar() that calls baz():
@@ -168,19 +245,36 @@ sub baz {
 
 \end{lstlisting}
 
-All we can say with confidence (without seeing the remaining body of bar) is that the second argument to foo() is a hash which is likely only one key/value (as randomization will break this code), the value of which ought to be a filehandle, and which will throw in the event it isn't.
+All we can say with confidence (without seeing the remaining body of bar) is that the second argument to foo() is a hash which is likely only one key/value (as randomization will break this code),
+the value of which ought to be a filehandle, and which will throw in the event it isn't.
 
-Some tool which automates this reasoning, say a Sub::Characterizer would be of great utility. It could be used alongside Pod::Weaver annotations to largely auto-generate documentation as well.
-The core difficulty here is the sheer scope of such an undertaking.  A lookup table of every call in core's arguments vis perlguts datatypes, along with every FFI interaction would have to be built, likely during BEGIN.
+Some tool which automates this reasoning, say a Sub::Characterizer would be of great utility.
+It could be used alongside Pod::Weaver annotations to largely auto-generate documentation as well.
+Pod::Coverage could be similarly enhanced.
+
+The core difficulty here is the sheer scope of such an undertaking.
+A lookup table of every call in core's arguments vis perlguts datatypes, along with every FFI interaction would have to be built, likely during BEGIN.
 From there, a set of boundary data for each of these datatypes would need to be maintained going forward.
+Even then you'll want some means of annotating when a sub's arguments acceptable input domain is a subset of its governing datatype.
+I found most of this out the "hard way" \cite{gsb} long ago attempting to solve this particular problem (and failing).
+
+\subsection{Surely strong typing solves all this?}
 
 Some users of other programming languages believe themselves to have obviated the entire class of errors due to improper inputs via strong typing systems.
-This of course ignores the reality that poor choice of type (such as an "Any" type, or unsigned when you need signs, etc) immediately voids any such guarantees, and boundary testing is nonetheless necessary.
+This of course ignores the reality that poor choice of type (such as an "Any" type, or unsigned when you need signs, etc) immediately voids any such guarantees.
+Boundary testing also remains necessary.
+However the argument is not entirely without merit, and there are some things such as the `types` pragma and various other runtime type-checkers such as Type::Tiny to attest to this.
 
-\subsection{But I've got 100\% coverage, now what?}
+Typescript (a code generator) is probably the best example of a dynamic language figuring out how to give you such compile-time guarantees.
+Supposing everything else it interacts with is also generated by typescript, a good degree of confidence can be had.
+It's also likely that much of the code therein, particularly the types themselves, can be repurposed towards doing the same with perl.
+While I wished to build a proof of concept for this, alas time did not permit.
+Building a generic framework to generate dynamic language code from typed variants might be an incredibly good fit for Raku Grammars.
 
-It's usually fairly straightforward to get 100% statement coverage on greenfield code.
-However this rarely translates into software quality, as the test coverage on any of the deps in the stack remains opaque.
+\subsection{I've got 100\% coverage though, its perfect right?}
+
+It's usually fairly straightforward to get 100\% statement coverage on greenfield code.
+However this rarely translates into software quality, as the test coverage on any of the dependencies in the stack is opaque in practically all programming languages.
 How do we identify if the dependencies we use are well covered \textit{where we use them}?
 If we can, the same techniques can be cross-referenced with the relative importance of the module vis. the "CPAN River" to identify where the most high-impact test coverage improvements could be made in the perl ecosystem.
 
@@ -192,32 +286,50 @@ While we could always wrap CPAN, ideally a CPAN::Plugin either pre or post test 
 Nevertheless, given the wide variety of means that CPAN Modules might be installed, any solution here would have to build a coverage index on-demand, and cache it for later use, likely as a plugin to Devel::Cover instead.
 cpancover \textit{appears} to do this, but is currently broken and appears unmaintained.
 
+Yet another place where I would love to have a proof of concept.
+
 \subsection{eval \{\} is not enough}
 
-Since the primary programming paradigm is \textit{not} "Klingon Programming" (where it is better to \textit{die()} than \textit{return()} in failure), there is no guarantee that environmental problems are caught.
-This is why a great many Perl::Critic rules about using eval {...;1;} or do..., `my $pid=fork(); die unless defined $pid` and so on exist.
-Some means of actual fault injection should also be taken into account with regard to coverage.
+Since not all programmers adhere to "Klingon Programming" (where it is better to \textit{die()} than \textit{return()} in failure),
+there is no guarantee that environmental problems are caught.
+This is why a great many Perl::Critic rules exist to catch precisely such problems caused by external factors.
+For example:
+\begin{lstlisting}
+eval {...;1;} or do...
+
+my $pid=fork(); die unless defined $pid;
+\end{lstlisting}
+Clearly, some means of actual fault injection should also be taken into account with regard to coverage.
 
 How many subs are actually safe when `ls` returns `read error`?
 Does your script recover from children whacked by oomkiller?
-What if fork() fails because the process table is filled with zombies?
-What about system() or qx{} or pipe open() when the target does not exist, but that -f returns true because you have a bad RAID card?
+What if fork() fails because the process table is filled with zombies? \cite{gsb2}
+What about when system() or qx{} or pipe open() where the target does not exist, but -f returns true because you have a bad RAID card?
+I (and I suspect many of you) have had the misfortune of experiencing these cases personally.
 
 This is actually a quite complicated subject.  As the founder of Antithesis puts it \cite{antithesis}:
 \begin{displayquote}
 the \$100 bill is surrounded by an entire field of poisonous spike-pits, nay, a continent of them.
 \end{displayquote}
-Aside from building something which can inject the \textit{astonishingly vast array} of such faults, there is still the problem of integrating this into perl's testing harness, and reporting coverage to do.
+Aside from building something which can inject the \textit{astonishingly vast array} of such faults,
+there is still the problem of integrating this into perl's testing harness, and reporting coverage of such in some fashion.
+
+Given the scope, I have made no attempts at a proof of concept.
+However, if I were to do so, I think the approach used by Test::MockFile \cite{mf} is likely one which can be leveraged to satisfy these needs.
 
 \subsection{Fitness for a particular purpose}
 
 As mentioned earlier, the best means to evaluate whether changes to software harm it's fitness to purpose is some means of tracking user paths through the software as they perform tasks.
+If sudden unintended disturbances in user paths are detected after pushing changes, it is a strong indication of error.
 There are two levels of this; one is front-end and the other on the back end.
-Ideally these are integrated somehow; given perl is not *usually* the code powering UIs, but generating them, our primary concern will be with the points that interfaces reach out and touch backend code.
+Ideally these are integrated somehow; given perl is not \textit{usually} the code powering UIs, but generating them, our primary concern will be with the points that interfaces reach out and touch backend code.
 
 The best way to satisfy these needs is via a powerful logging framework using something like Log::Dispatch::DBI and robust session handling with shared identifiers between frontend and backend instrumentation.
-From there you need something to *identify and classify* common patterns of usage.
-This sounds suspiciously like what Neural Networks are *actually good at doing*, so let's do just that.
+From there you need something to \textit{identify and classify} common patterns of usage.
+This sounds suspiciously like what Neural Networks are \textit{actually good at doing}.
+
+AI::Categorizer running on a pack()ed representation of an application's state parameters throughout a user session ought to do the trick.
+Yet another place I will have to rush to get a POC if I can at all.
 
 \subsection{Quality with non-functional Characteristics}
 
@@ -235,7 +347,7 @@ It would greatly simplify my decision as to what to use if I already knew ahead 
 \end{itemize}
 And so on.
 
-This is also another place where NNs could be of great utility; while they are pretty awful at writing code, they're pretty great at classifying it.
+This is also another place where NNs could be of great utility; while they are necessarily awful at writing \textit{correct} code \cite{copilot}, they're pretty great at classifying it.
 As such we could likely build these lists of "Modules that do largely the same things on CPAN" in a mostly automated fashion.
 You could roll right up to metacpan and see a "More like this" link -- like youtube but actually useful!
 I for one would love seeing a table with these criteria and test coverage readily available -- no other packaging system does anything approaching this useful.
@@ -246,15 +358,17 @@ Oftentimes your choice of components is the primary determinant of your output's
 \section{Conclusion}
 
 As you might expect from an active programming community of 35+ years, the things perl struggles to understand about its programs are essentially what every other programming language struggles with.
-This should come as no shock, as the ultimate cause of them are pretty sticky fundamental issues on the "even people don't qualify as Strong AI" spectrum.
+This should come as no shock, as the ultimate cause of them are pretty sticky fundamental issues of the "even people don't qualify as Strong AI" stripe.
 The good news is that our near-total incapacity to percieve all the ways in which our programs can fail also means automated solutions to ferreting these out are likely to be far more effective at doing so than users.
 As such the dream of "Bug Free" software is largely attainable in the same sense that a house in a bad neighborhood with cameras on it is going to be largely burgular free.
-Being of relatively higher quality than all your competitors is highly desirable, as quality is the *entire* driver of productivity and income.
-You don't have to be original, use non-dead programming languages or even be particularly talented to win with this approach. (japan.jpg)
+Being of relatively higher quality than all your competitors is highly desirable, as quality is the \textit{entire} driver of productivity and income.
+You don't have to be original, use "alive" programming languages or even be particularly talented to win with this approach.
 
-The software industry is one of the few places aside from SoEs (nasa.jpg) where this rate of failure is remotely tolerable.
-This is because our field is still relatively young, but that is changing quickly.
-The trend you need to get religion on is not AI, but quality.
+The software industry is one of the few places aside from SoEs where a 2/3 rate of failure \cite{standish} is remotely tolerable.
+This is because our field is still relatively young (and thus high margin), but that is changing quickly.
+The trend you need to get behind is not AI, but quality.
+Whoever in our industry fully internalizes the lessons of Fred Brooks, Deming and Juran first will win.
+Tooling such as suggested here would greatly further those ends, and give whatever language that builds them great advantage over their alternatives.
 
 \newpage
 \bibliographystyle{vancouver}
