@@ -140,8 +140,6 @@ there remain a number of unexamined approaches which will likely prove fruitful 
 The productivity of most capital or labor is \textit{almost entirely} a function of error rate \cite{oring}.
 Being able to quantify the conditions under which failures can be expected is thus of the utmost importance.
 
-In the era of testsuite generation via large language models, this is of even greater concern.
-
 I will lay out what is currently available, how that fits into a framework for reasoning about programs
 in a rigorous fashion, and identify places where our ability to reason could be improved via tooling.
 Prototypes of said tools will also be demonstrated.
@@ -166,7 +164,7 @@ Some of these instructions are thought of as code, some as data but it's all the
 Any given instruction is going to operate like any other mathematical function;
 this is to say that it will have a range of acceptable inputs and outputs.
 Anything outside of these ranges results in either invalid or undefined behavior when composed in a stack of instructions.
-Much like a child's game of "telephone", the earlier in the stack this happens, typically the worse the outcome.
+Much like a child's game of telephone\footnote{Also known as chinese whispers, and other names}, the earlier in the stack this happens, typically the worse the outcome.
 Professional software testers are quick to tell you that this is \textit{also} true of the software \textit{production process} itself \cite{prodprop}.
 
 From this two things are clear:
@@ -174,55 +172,59 @@ From this two things are clear:
 \item rigorous testing of any individual \textit{instruction} within a stack over it's expected domain of inputs, and a sampling of data outside of that is valuable \cite{bezier2}.
 \item The interaction of an instruction with its immediate follower and predecessor must also be well understood; these multi-instruction sections can indeed be treated as though they are themselves more complicated instructions.
 \end{itemize}
-This is the actual theoretical underpinning behind the two testing concepts we are all familiar with (unit and integration testing), but most don't think too hard about.
-It's this lack of concrete understanding that leads to frequent confusion and ineffective testsuites the world over.
+These are the concepts behind two of the three\footnote{the third being acceptance or fitness testing which is discussed later} approaches to testing programs (unit\footnote{also referred to component testing} and integration\footnote{frequently confused with acceptance and black or grey-box testing} testing).
 
-It is tempting from here to consider programs as discrete stacks, which can be exhaustively proven to behave well, in a sort of "proof by induction".
+It is tempting from here to consider programs as discrete stacks, which can be exhaustively proven to behave well, in a \textit{proof via induction}.
 However the data you feed in is itself a stack of instructions with a necessarily unbounded input and output domain.
 To make things worse, well designed programs \textit{tend to} move code into data \cite{bezier3}, so now the problem not just undecidable \cite{turing} \textit{but also} recursive.
 
 \subsection{Fitness: a further complication}
 
-Another vexatious problem rears its head when attempting to demonstrate fitness for a particular purpose.
+Another vexatious problem is encountered when demonstrating fitness for a particular purpose.
 Any approach other than actually engaging in said purpose immediately falls afoul of the "frame problem" \cite{frame}.
 Ultimately nothing but an actual user can actually accept a product is fit for a particular purpose, because non-embodied intelligence can't do that \cite{chapman}.
 As such, any approach other than recording user journeys and being able to play them back is shooting in the dark.
 
-Economists call this concept "Demonstrated Preference" and "Subjective Value"\cite{mises1},
-and it is my hypothesis that the impossibility of centralized economic planning \cite{mises2} is largely the frame problem restated.
-For our purposes, it is sufficient to say that while computers are quite good at dealing with cardinal concepts, they are astonishingly poor at dealing with ordinal ones.
-Anyone familiar with sorting algorithms, counting problems and the "perfect covering" problem will have figured this out the hard way.
+Economists call this concept "Demonstrated Preference" and "Subjective Value"\cite{mises1}\footnote{it is my hypothesis that the impossibility of centralized economic planning \cite{mises2} is largely the frame problem restated.}.
+For our purposes, it is sufficient to say that while computers are quite good at dealing with cardinal\footnote{a member of a cardinal set is \textit{equal, greater or lesser} than another} concepts,
+they are astonishingly poor at dealing with ordinal\footnote{a member of an ordinal set is \textit{ordered before or after} another; X is preferred to Y.  Duplicates may effect said ordering based on a \textit{marginal utility function}.} ones.
+Anyone familiar with sorting algorithms, counting problems and Ramsey's\footnote{Also known as the clique problem. See here for my latest brush with this: https://troglodyne.net/posts/6ff13eb0-13de-11ec-84d9-8f4e0c69f986} problem will have figured this out the hard way.
 In this case, not only are we dealing with a problem which would be at least NP-Hard had we perfect knowledge, we also must grapple with incomplete information.
 
 We are left with nothing more than the "God Algorithm" (already know the answer). \cite{atwood}
 Frequently this is how caching systems are described, but to some extent this is also true of user surveillance.
-It should therefore come as no surprise that tools enabling comprehensive user surveillance have proven quite popular.
+This is one of many reasons that tools enabling comprehensive user surveillance have proven quite popular\footnote{Mostly for the purpose of advertisement}.
 
-Nevertheless, many firms fall victim to the conceit of planning with their "user stories" and acceptance tests based around these.
-Ultimately the only \textit{effective} means to catch fitness issues early in new features is to "eat your own dog food",
-being particularly attentive to "Schleps" \cite{schlep} and other places the work-flow can be de-burred or otherwise streamlined.
+Nevertheless, many firms fall victim to the conceit of planning with \textit{user stories}\footnote{An idealized conception of a user and how their motivations might propel their journey through a usage session} and acceptance tests based around these.
+Ultimately the only \textit{effective} means to catch fitness issues early in new features is to \textit{eat your own dog food}\footnote{Origins of the phrase are largely lost to time, but the practice was generally accepted in American firms before the 1990s software boom.},
+being particularly attentive to "Schleps" \cite{schlep} and other places the work-flow can be de-burred or otherwise streamlined\footnote{The most popular systematic approaches to this being Kaizen and Kanban}.
 
 \section{Reasoning about Perl Programs}
 
 Knowing all this, what then shall we do?
-First, let's go over the extant tools on CPAN.
+First, let's go over the extant tools on CPAN\footnote{Comprehensive Perl Archive network.  https://cpan.org}.
 
 All programs can be expressed as lambda calculus; programs are nearly always transformed into some variety of "intermediate form" prior to being handed off to lower level executors.
 One such form is the "abstract syntax tree", which is an intermediate form used to reason about the correctness of programs rather than to pass to hardware for execution.
 
-Building such a tree is how PPI, and the tools which rely on it such as Perl::Critic work.
-Alternatively you can inspect the "intermediate form" which the interpreter itself builds via the B::Deparse, or similar techniques as Devel::Cover and Devel::NYTProf leverage.
-However just because you \textit{can} reason about perl programs in the same fashion as any other programming language, does not guarantee avenues of inquiry are exhaustively explored.
+Building such a tree is how PPI\footnote{An important distinction must be made here: the intermediate form is of Perl \textit{documents} rather than Perl \textit{programs}; which is to say an idealized conception of Perl which does not necessarily line up with interpreted behavior, but is close enough to be useful.},
+and the tools which rely on it such as \texttt{Perl::Critic}\footnote{https://metacpan.org/pod/Perl::Critic} work.
+Alternatively you can inspect the "intermediate form" which the interpreter itself builds via the \texttt{B::Deparse}\footnote{https://metacpan.org/pod/B::Deparse},
+or similar techniques such as \texttt{Devel::Cover}\footnote{https://metacpan.org/pod/Devel::Cover} and \texttt{Devel::NYTProf}\footnote{https://metacpan.org/pod/Devel::NYTProf} leverage.
+However the ability to reason about Perl programs in the same fashion as any other programming language does not guarantee our avenues of inquiry are exhaustively explored.
 
 \subsection{Devel::Cover does not quite cover the subject}
 
-Devel::Cover is quite good at identifying statements and conditions which are not covered within a program.
+\texttt{Devel::Cover} is quite good at identifying statements and conditions which are not covered within a program.
 It cannot however identify places where a condition ought to be applied, but is not or vice versa.
 
 It also does not have a means of identifying whether the boundaries of any given block's input/output domain have been exercised.
-It is generally via these means that we discover these missed conditionals, as we are frequently surprised by the realities imposed by input data.
-Given perl only has optional input signatures, and no output signatures nor ways to signify that a sub throws, this has to be inferred;
-a characterization of the stack must be built.
+It is generally via testing these boundaries that needs for additional conditional statements\footnote{Sometimes referred to guard clauses, short-circuits, etc} are discovered.
+Unfortunately the means available to automatically discover these boundaries is lacking.
+
+Perl only has optional input signatures\footnote{https://perldoc.pl/perlsub\#Signatures}, and no output signatures.
+Nor are there ways to signify that a subroutine throws exceptions.
+All this must be inferred via some means.
 
 This inference necessarily implies walking the stack down to the most basic of calls.
 Suppose we have a sub foo, which calls bar() that calls baz():
@@ -245,17 +247,31 @@ sub baz {
 
 \end{lstlisting}
 
-All we can say with confidence (without seeing the remaining body of bar) is that the second argument to foo() is a hash which is likely only one key/value (as randomization will break this code),
-the value of which ought to be a filehandle, and which will throw in the event it isn't.
+There is little we can say with confidence here.
+What we can say (without seeing the remaining body of bar) is that:
+\begin{itemize}
+\item The second argument to foo() is a likely a hash due to assignment (but might not be, as it is then later called-by-reference!)
+\item This hash is (hopefully) one key/value (as randomization will break this code due to aforementioned call-by-reference of the third argument which is presumably the hash value)
+\item This value ought to be an \textit{open} filehandle, given it is then passed to close()
+\item In the event it is not, the subroutine throws an exception.
+\end{itemize}
+As you can see, there is \textit{considerable} ambiguity in even quite trivial examples.
 
-Some tool which automates this reasoning, say a Sub::Characterizer would be of great utility.
-It could be used alongside Pod::Weaver annotations to largely auto-generate documentation as well.
-Pod::Coverage could be similarly enhanced.
+Some tool which automates this reasoning, likely a CPAN module (Which might appropriately be named \texttt{Sub::Characterizer}), would be of great utility.
+It could be used alongside \texttt{Pod::Weaver}\footnote{https://metacpan.org/pod/Pod::Weaver} annotations to largely auto-generate subroutine documentation as well.
+\texttt{Pod::Coverage}\footnote{https://metacpan.org/pod/Pod::Coverage} could be similarly enhanced.
 
-The core difficulty here is the sheer scope of such an undertaking.
-A lookup table of every call in core's arguments vis perlguts datatypes, along with every FFI interaction would have to be built, likely during BEGIN.
-From there, a set of boundary data for each of these datatypes would need to be maintained going forward.
-Even then you'll want some means of annotating when a sub's arguments acceptable input domain is a subset of its governing datatype.
+The difficulty here is the scope of such an undertaking.
+A lookup table of every subroutine in Perl's CORE\footnote{\texttt{perldoc perlfunc}} namespace's arguments mapping to perl's internal datatypes \footnote{see \texttt{perldoc perlguts}} would need to be built.
+The same would have to be done for every FFI\footnote{Foreign Function Interface} or XS\footnote{\texttt{perldoc perlxs}} module used.
+Given all other Perl subroutines you write are going to be a composition thereof, this knowledge would allow for correct characterizations of subroutines to be made.
+
+There are \textit{significant} costs involved in this, particularly for FFI/XS, which is much of CPAN.
+This is because the FFI interface itself (be it XS, libffi\footnote{the backend for \texttt{FFI::Platypus}}, or others) would have to produce this information as a build artifact
+which could then be used to instruct the characterizer appropriately.
+
+In addition, a set of boundary data for each of these datatypes would need to be maintained going forward, along with whether fatal exceptions may occur.
+Even then it would be of great utility to have some means of annotating when a subroutine's arguments acceptable input domain is a subset of its governing datatype.
 I found most of this out the "hard way" \cite{gsb} long ago attempting to solve this particular problem (and failing).
 
 \subsection{Surely strong typing solves all this?}
@@ -263,13 +279,11 @@ I found most of this out the "hard way" \cite{gsb} long ago attempting to solve 
 Some users of other programming languages believe themselves to have obviated the entire class of errors due to improper inputs via strong typing systems.
 This of course ignores the reality that poor choice of type (such as an "Any" type, or unsigned when you need signs, etc) immediately voids any such guarantees.
 Boundary testing also remains necessary.
-However the argument is not entirely without merit, and there are some things such as the `types` pragma and various other runtime type-checkers such as Type::Tiny to attest to this.
+However the argument is not entirely without merit, and there are various runtime constraint systems such as \texttt{Type::Tiny} attesting to this\footnote{Along with other efforts, such as those promoted by the Perl Types committee: https://perlcommunity.org/types/}.
 
-Typescript (a code generator) is probably the best example of a dynamic language figuring out how to give you such compile-time guarantees.
-Supposing everything else it interacts with is also generated by typescript, a good degree of confidence can be had.
+Typescript\footnote{a ECMAScript (aka Javascript) code generator} is probably the best example of a dynamic language figuring out how to give you such compile-time guarantees.
+Supposing everything else it interacts with is also generated by Typescript\footnote{Rarely ever the case in Javascript projects}, a good degree of confidence can be had.
 It's also likely that much of the code therein, particularly the types themselves, can be repurposed towards doing the same with perl.
-While I wished to build a proof of concept for this, alas time did not permit.
-Building a generic framework to generate dynamic language code from typed variants might be an incredibly good fit for Raku Grammars.
 
 \subsection{I've got 100\% coverage though, its perfect right?}
 
