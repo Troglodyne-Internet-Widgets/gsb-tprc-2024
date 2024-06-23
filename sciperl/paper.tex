@@ -32,7 +32,7 @@
     }
     @misc{bezier2,
         title  = "Bezier's software testing techniques",
-        note   = "TODO: chapter/verse"
+        note   = "ibid"
     }
     @misc{bezier3,
         title  = "ibid",
@@ -73,7 +73,7 @@
         author = "Jeff Atwood",
         url    = {https://blog.codinghorror.com/the-god-login/},
         year   = 2015,
-        note   = "While I've heard many testers describe such comprehensive user surveillance systems they've built over the years, I've never heard them classified.  Perhaps the appropriate name might be 'revelation' tests." 
+        note   = "While I've heard many testers describe such comprehensive user surveillance systems they've built over the years, I've never heard them classified.  Perhaps the appropriate name might be 'revelation' tests."
     }
     @misc{schlep,
         title  = "Schlep Blindness",
@@ -83,6 +83,18 @@
     }
     @misc{gsb,
         url  = {https://github.com/teodesian/Pod-Coverage-More/blob/master/lib/Pod/Coverage/More.pm}
+    }
+    @misc{mltype,
+        author = "Harry Mairson",
+        year   = 1989,
+        journal = "Proceedings of the ACM",
+        url     = {https://dl.acm.org/doi/10.1145/96709.96748}
+    }
+    @misc{clippert,
+        title  = "Lambda Expressions vs. Anonymous Methods, pt. 5",
+        url    = {https://learn.microsoft.com/en-us/archive/blogs/ericlippert/lambda-expressions-vs-anonymous-methods-part-five},
+        author = "Eric Clippert",
+        year   = 2007
     }
     @misc{gsb2,
         note = "I once built a test script for just this, and then used the linux kernel testing api to put the zombies in uninterruptible sleep().  This is a fun way to DOS hypervisors."
@@ -254,7 +266,7 @@ Some tool which automates this reasoning, likely a CPAN module (Which might appr
 It could be used alongside \texttt{Pod::Weaver}\footnote{https://metacpan.org/pod/Pod::Weaver} annotations to largely auto-generate subroutine documentation as well.
 \texttt{Pod::Coverage}\footnote{https://metacpan.org/pod/Pod::Coverage} could be similarly enhanced.
 
-The difficulty here is the scope of such an undertaking.
+The difficulty here is twofold: the scope of such an undertaking and the computational difficulty to do so.
 A lookup table of every subroutine in Perl's CORE\footnote{\texttt{perldoc perlfunc}} namespace's arguments mapping to perl's internal datatypes \footnote{see \texttt{perldoc perlguts}} would need to be built.
 The same would have to be done for every FFI\footnote{Foreign Function Interface} or XS\footnote{\texttt{perldoc perlxs}} module used.
 Given all other Perl subroutines you write are going to be a composition thereof, this knowledge would allow for correct characterizations of subroutines to be made.
@@ -266,6 +278,13 @@ which could then be used to instruct the characterizer appropriately.
 In addition, a set of boundary data for each of these datatypes would need to be maintained going forward, along with whether fatal exceptions may occur.
 Even then it would be of great utility to have some means of annotating when a subroutine's arguments acceptable input domain is a subset of its governing datatype.
 I found most of this out the "hard way" \cite{gsb} long ago attempting to solve this particular problem (and failing).
+
+Nevertheless, this is a problem which others have attempted to solve and done so with some success.
+Haskell, ML and Swift all have such type inference systems with the caveat of exponential worst-case execution times\cite{clippert}.
+This is because the problem is in fact the 3SAT problem\footnote{also known as the boolean satisfiability problem} which is NP-hard\cite{mltype}.
+
+Like all other NP-hard problems, they can be overcome by solving a simpler subset of the problem (aka "cheating").
+A type inferencer can be lifted from one of these languages, and if we can devise a means to studiously avoid the perverse cases it would be of great utility.
 
 \subsection{Surely strong typing solves all this?}
 
@@ -295,8 +314,6 @@ cpancover \textit{appears} it \textit{intends to} do this, but is currently brok
 The same techniques can be cross-referenced with the relative importance of the module.
 This information is known as the \textit{CPAN River}\footnote{See http://neilb.org/2015/04/20/river-of-cpan.html}.
 Doing this will identify where the most high-impact test coverage improvements can be made in the perl ecosystem.
-
-Yet another place where I would love to have a proof of concept.
 
 \subsection{eval \{\} is not enough}
 
@@ -333,7 +350,6 @@ Furthermore, we must pick the subroutines out of the next line if we are in the 
 
 Thankfully there is a solution which uses XS to accomplish this: \texttt{Devel::Probe}\footnote{https://metacpan.org/pod/Devel::Probe}.
 
-TODO: show off POC doing this with tests...
 
 \subsection{Fitness for a particular purpose}
 
